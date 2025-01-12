@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35323.107
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Okala", "Okala\Okala.csproj", "{1491707B-E3CE-484B-B5F6-04A5D7B6D56B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1491707B-E3CE-484B-B5F6-04A5D7B6D56B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1491707B-E3CE-484B-B5F6-04A5D7B6D56B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1491707B-E3CE-484B-B5F6-04A5D7B6D56B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1491707B-E3CE-484B-B5F6-04A5D7B6D56B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {0B1EEC5F-8A35-41AF-A3C6-0FF00AD097EA}
+	EndGlobalSection
+EndGlobal
