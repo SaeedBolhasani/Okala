@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Okala.Models;
 using System.Diagnostics;
 using System.Net;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using System.Web;
 
@@ -25,14 +26,14 @@ namespace Okala.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Index([FromForm] string? symbol)
+        public async Task<IActionResult> Index([FromForm] int symbolId)
         {
-            var x = _coinMarketCapService.Search(symbol ?? "btc");
+            var x = await _coinMarketCapService.Get(symbolId);
             return View(x);
         }
 
         [HttpGet]
-        public IActionResult Search([FromQuery]string symbol)
+        public IActionResult Search([FromQuery] string symbol)
         {
             return Ok(new { Results = symbol == null ? [] : _coinMarketCapService.Search(symbol) });
         }
@@ -48,37 +49,21 @@ namespace Okala.Controllers
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
 
-
-        static string makeAPICall()
-        {
-            //var URL = new UriBuilder("https://sandbox-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?symbol=BTC");
-            var URL = new UriBuilder("https://sandbox-api.coinmarketcap.com/v2/tools/price-conversion?symbol=BTC");
-
-            var queryString = HttpUtility.ParseQueryString(string.Empty);
-            queryString["start"] = "1";
-            queryString["limit"] = "5000";
-            queryString["convert"] = "USD";
-
-            //URL.Query = queryString.ToString();
-
-            var client = new WebClient();
-            client.Headers.Add("X-CMC_PRO_API_KEY", "0de2dfc8-c1b0-440a-8afd-e8d2795827b3");
-            client.Headers.Add("Accepts", "application/json");
-            return client.DownloadString(URL.ToString());
-
-        }
     }
 
     public class CoinMarketCapHttpClient(HttpClient httpClient)
     {
-        public async Task<CoinMarketResponse<SymbolInfo2>> Get()
+        public async Task<CoinMarketResponse<SymbolInfo2>> Get(int id)
         {
-            await GetLatestQuotes();
-            ///
-            //return await httpClient.GetFromJsonAsync<CoinMarketResponse>("/v2/cryptocurrency/quotes/latest?id=1027&convert=usd,, EUR, BRL, GBP, and AUD");
-            return await httpClient.GetFromJsonAsync<CoinMarketResponse<SymbolInfo2>>("/v2/cryptocurrency/quotes/latest?symbol=btc&convert=usd");//,eur,brl,gbp,aud");
-            var resuul = await httpClient.GetStringAsync("/v2/cryptocurrency/quotes/latest?symbol=btc&convert=ltc,usd");
-            //return Newtonsoft.Json.JsonConvert.DeserializeObject<CoinMarketResponse>(resuul);
+            var tasks = new List<Task<string>>();
+            foreach (var x in new string[] { "usd", "eur", "brl", "gbp", "aud" })
+                tasks.Add(httpClient.GetStringAsync($"/v2/cryptocurrency/quotes/latest?id={id}&convert={x}"));
+
+            await Task.WhenAll(tasks);
+
+            var x2 = JsonNode.Parse(tasks[0].Result);
+            //x2["data"][id.ToString()]["quote:UDS"]
+            return default;
         }
 
         public async Task<CoinMarketResponse<SymbolInfo[]>> GetLatestQuotes(int start = 1, int size = 5000)
@@ -106,12 +91,6 @@ public class CoinMarketResponse<T>
     public required Status Status { get; set; }
     public T Data { get; set; }
 }
-/* "id": 30021,
-            "name": "Quark (Atomicals)",
-            "symbol": "QUARK",
-            "slug": "quark-atomicals",
-            "is_active": 1,*/
-
 public record SymbolInfo
 {
     public long Id { get; set; }
@@ -133,6 +112,12 @@ public class Status
     public int elapsed { get; set; }
     public int credit_count { get; set; }
     public object notice { get; set; }
+    public DateTime Timestamp { get; set; }
+    public int ErrorCode { get; set; }
+    public string? ErrorMessage { get; set; } // Nullable
+    public int Elapsed { get; set; }
+    public int CreditCount { get; set; }
+    public string? Notice { get; set; } // Nullable
 }
 
 public class SymbolInfo2
@@ -141,11 +126,22 @@ public class SymbolInfo2
     public string Symbol { get; set; }
     public string Description { get; set; }
 
-    public Dictionary<string, Pricing> Quote { get; set; }
+    public Dictionary<string, SymbolPrice> Quote { get; set; }
 }
 
-public class Pricing
+public class SymbolPrice
 {
     public decimal Price { get; set; }
+    public decimal Volume24h { get; set; }
+    public decimal VolumeChange24h { get; set; }
+    public decimal PercentChange1h { get; set; }
+    public decimal PercentChange24h { get; set; }
+    public decimal PercentChange7d { get; set; }
+    public decimal PercentChange30d { get; set; }
+    public decimal PercentChange60d { get; set; }
+    public decimal PercentChange90d { get; set; }
+    public decimal MarketCap { get; set; }
+    public decimal MarketCapDominance { get; set; }
+    public decimal FullyDilutedMarketCap { get; set; }
+    public DateTime LastUpdated { get; set; }
 }
-

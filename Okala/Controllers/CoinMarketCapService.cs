@@ -57,6 +57,8 @@ namespace Okala.Controllers
 
             return result;
         }
+
+        public async Task<object> Get(int id)=> await _httpClient.Get(id);
     }
 }
 
